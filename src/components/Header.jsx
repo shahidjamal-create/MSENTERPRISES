@@ -114,14 +114,14 @@ function SearchBox({ onDone, className = '' }) {
   };
 
   return (
-    <form onSubmit={submit} className={`relative flex items-center w-full max-w-lg mx-auto ${className}`} role="search">
+    <form onSubmit={submit} className={`relative flex items-center w-full max-w-xl mx-auto ${className}`} role="search">
       <div className="relative flex items-center w-full">
         <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-slate-400" />
         <input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           className="h-10 w-full rounded-full border border-slate-200/90 bg-white pl-10 pr-24 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20 shadow-xs transition-all"
-          placeholder="Search for products..."
+          placeholder="Search tempered glass, pouches, 65W chargers, iPhone 16, S24..."
           aria-label="Search products"
         />
         <button
@@ -140,12 +140,16 @@ export default function Header() {
   const [categoryDropdown, setCategoryDropdown] = useState(false);
   const [productsDropdown, setProductsDropdown] = useState(false);
   const [servicesDropdown, setServicesDropdown] = useState(false);
+  const [modelModalOpen, setModelModalOpen] = useState(false);
+  const [modelSearchTerm, setModelSearchTerm] = useState('');
+  const [selectedBrandFilter, setSelectedBrandFilter] = useState('All');
   const [isScrolled, setIsScrolled] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const dropdownRef = useRef(null);
   const { count, wishlist } = useCart();
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -163,6 +167,7 @@ export default function Header() {
     setCategoryDropdown(false);
     setProductsDropdown(false);
     setServicesDropdown(false);
+    setModelModalOpen(false);
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -175,6 +180,14 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const filteredModels = TOP_10_MODELS.filter((m) => {
+    const matchesBrand = selectedBrandFilter === 'All' || m.brand.toLowerCase() === selectedBrandFilter.toLowerCase();
+    const matchesSearch = !modelSearchTerm.trim() || 
+      m.name.toLowerCase().includes(modelSearchTerm.toLowerCase()) || 
+      m.brand.toLowerCase().includes(modelSearchTerm.toLowerCase());
+    return matchesBrand && matchesSearch;
+  });
+
   return (
     <>
       <header
@@ -184,17 +197,17 @@ export default function Header() {
             : 'bg-white border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.02)]'
         }`}
       >
-      {/* 1. TOP MAIN HEADER ROW (Matching Photo 2) */}
+      {/* 1. TOP MAIN HEADER ROW */}
       <div className="container-page flex h-16 sm:h-[74px] items-center justify-between gap-3 sm:gap-4 lg:gap-6">
         {/* Brand Logo with orbital swoosh icon */}
         <Logo />
 
-        {/* Center Search Bar matching Photo 2 */}
-        <div className="hidden flex-1 md:block max-w-md mx-auto">
+        {/* Center Search Bar matching Image 3 with placeholder */}
+        <div className="hidden flex-1 md:block max-w-xl mx-auto px-2">
           <SearchBox />
         </div>
 
-        {/* Right Actions matching Photo 2 */}
+        {/* Right Actions */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {/* Book a Repair -> Button */}
           <Link
@@ -258,10 +271,15 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 2. SUB-NAVBAR ROW (Comfortable Connected Layout from Photo 2) */}
+      {/* Mobile Search Bar on small screens */}
+      <div className="block md:hidden border-t border-slate-100 bg-white px-3 py-2">
+        <SearchBox />
+      </div>
+
+      {/* 2. SUB-NAVBAR ROW (Comfortable Connected Layout with Categories & Filter by Model) */}
       <nav className="hidden border-t border-slate-200/80 md:block bg-[#F8FAFD] relative z-40" aria-label="Main Navigation">
         <div className="container-page flex h-12 items-center gap-2 xl:gap-3">
-          {/* 1. FIRST SIDE: Categories Solid Blue Pill Button matching Photo 2 */}
+          {/* 1. FIRST SIDE: Categories Button */}
           <div
             className="relative"
             ref={dropdownRef}
@@ -337,10 +355,21 @@ export default function Header() {
             )}
           </div>
 
-          {/* Vertical Divider */}
-          <div className="h-4 w-[1px] bg-slate-300 mx-1.5" />
+          {/* 2. FILTER BY MODEL BUTTON (Matching Image 2) */}
+          <button
+            type="button"
+            onClick={() => setModelModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-[#0066FF] bg-[#EDF5FF] hover:bg-blue-100/90 border border-[#D0E4FF] rounded-full shadow-2xs transition-all cursor-pointer active:scale-95 shrink-0"
+            title="Filter products by your phone model"
+          >
+            <Smartphone className="h-3.5 w-3.5 text-[#0066FF]" />
+            <span className="whitespace-nowrap">Filter by Model</span>
+          </button>
 
-          {/* 2. Home Link with Icon & Active Underline */}
+          {/* Vertical Divider */}
+          <div className="h-4 w-[1px] bg-slate-300 mx-1" />
+
+          {/* 3. Home Link with Icon & Active Underline */}
           <NavLink
             to="/"
             end
@@ -491,6 +520,46 @@ export default function Header() {
         </div>
       </nav>
 
+      {/* 3. POPULAR MODELS QUICK-SELECT STRIP (Matching Image 4) */}
+      <div className="border-t border-slate-200/70 bg-[#F8FAFD] py-2 px-2 sm:px-4">
+        <div className="container-page flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          {/* POPULAR MODELS : Badge */}
+          <div className="flex items-center gap-1 shrink-0 rounded-full bg-white border border-slate-200/90 px-3 py-1 shadow-2xs">
+            <span className="text-amber-500 text-xs">✨</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">POPULAR MODELS :</span>
+          </div>
+
+          {/* Model Pills */}
+          {TOP_10_MODELS.map((m) => (
+            <Link
+              key={m.id}
+              to={`/shop?model=${m.id}`}
+              className="flex items-center gap-1.5 shrink-0 rounded-full border border-slate-200/90 bg-white hover:border-[#0066FF] hover:text-[#0066FF] px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs transition-all group active:scale-95 whitespace-nowrap"
+            >
+              {m.image_url ? (
+                <img
+                  src={m.image_url}
+                  alt=""
+                  className="h-4.5 w-4.5 rounded-full object-cover shrink-0 ring-1 ring-slate-200 group-hover:ring-[#0066FF]"
+                />
+              ) : (
+                <Smartphone className="h-3.5 w-3.5 text-[#0066FF] shrink-0" />
+              )}
+              <span>{m.short_name || m.name}</span>
+            </Link>
+          ))}
+
+          {/* All Models > Link */}
+          <Link
+            to="/shop"
+            className="flex items-center gap-0.5 shrink-0 px-2.5 py-1 text-xs font-bold text-[#0066FF] hover:underline whitespace-nowrap"
+          >
+            <span>All Models</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
+
       {/* 5. FULLY RESPONSIVE MOBILE DRAWER MENU */}
       {menuOpen && (
         <div
@@ -629,6 +698,123 @@ export default function Header() {
         </div>
       )}
     </header>
+
+    {/* Filter by Model Popup Modal (Matching Image 2) */}
+    {modelModalOpen && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in duration-150"
+        onClick={() => setModelModalOpen(false)}
+      >
+        <div
+          className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-150"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0066FF]">
+                <Smartphone className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Filter by Model</h3>
+                <p className="text-[11px] text-slate-500">Find 100% compatible tempered glass, pouches & accessories</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setModelModalOpen(false)}
+              className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Search Input inside Modal */}
+          <div className="relative mb-3">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={modelSearchTerm}
+              onChange={(e) => setModelSearchTerm(e.target.value)}
+              placeholder="Type model name (e.g. iPhone 15, S24 Ultra)..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-9 pr-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#0066FF] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+              autoFocus
+            />
+          </div>
+
+          {/* Brand Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-3">
+            {['All', 'Apple', 'Samsung', 'OnePlus', 'Xiaomi', 'Vivo'].map((brand) => (
+              <button
+                key={brand}
+                type="button"
+                onClick={() => setSelectedBrandFilter(brand)}
+                className={`rounded-full px-3 py-1 text-[11px] font-bold shrink-0 transition-colors ${
+                  selectedBrandFilter === brand
+                    ? 'bg-[#0066FF] text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {brand}
+              </button>
+            ))}
+          </div>
+
+          {/* Models Grid */}
+          <div className="max-h-[260px] overflow-y-auto space-y-1.5 pr-1">
+            {filteredModels.length > 0 ? (
+              filteredModels.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    setModelModalOpen(false);
+                    navigate(`/shop?model=${m.id}`);
+                  }}
+                  className="w-full flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:border-[#0066FF] hover:bg-blue-50/50 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    {m.image_url ? (
+                      <img src={m.image_url} alt="" className="h-8 w-8 rounded-lg object-cover ring-1 ring-slate-200 group-hover:ring-[#0066FF]" />
+                    ) : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+                        <Smartphone className="h-4 w-4" />
+                      </div>
+                    )}
+                    <div>
+                      <span className="block text-xs font-bold text-slate-900 group-hover:text-[#0066FF] transition-colors">
+                        {m.name}
+                      </span>
+                      <span className="block text-[10px] text-slate-400">{m.brand}</span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#0066FF] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                    View Products →
+                  </span>
+                </button>
+              ))
+            ) : (
+              <div className="py-6 text-center text-xs text-slate-400">
+                No matching models found. Try another search or view all products.
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] text-slate-400">Looking for all items?</span>
+            <Link
+              to="/shop"
+              onClick={() => setModelModalOpen(false)}
+              className="text-xs font-bold text-[#0066FF] hover:underline"
+            >
+              Browse All Products →
+            </Link>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Floating Move Up / Back to Top Button */}
     {showScrollTop && (
