@@ -592,6 +592,8 @@ export const MOCK_SETTINGS = {
   email: {
     business_recipient: 'mohammedafiz447@gmail.com',
     sender_name: 'MS ENTERPRISES',
+    sender_email: 'mohammedafiz447@gmail.com',
+    brevo_api_key: '',
     notify_enquiry: true,
     notify_booking: true,
     notify_order: true,
