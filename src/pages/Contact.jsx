@@ -12,7 +12,7 @@ const EMPTY = { name: '', email: '', phone: '', subject: '', message: '' };
 export default function Contact() {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
-  const [result, setResult] = useState({ tone: '', title: '', message: '', directGmailUrl: '', mailtoUrl: '' });
+  const [result, setResult] = useState({ tone: '', title: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
@@ -44,17 +44,12 @@ ${form.message}
 Store Recipient: mohammedafiz447@gmail.com
 Address: 73, HKP Road, Sulthangunta, Shivaji Nagar, Bengaluru, Karnataka 560051`;
 
-    const directGmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=mohammedafiz447@gmail.com&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-    const mailtoUrl = `mailto:mohammedafiz447@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-
     try {
       await contactApi.enquiry(form);
       setResult({
         tone: 'success',
-        title: 'Enquiry sent to mohammedafiz447@gmail.com',
-        message: 'Your request has been routed directly to our store Gmail: mohammedafiz447@gmail.com. We have recorded your request and will reply promptly to your email.',
-        directGmailUrl,
-        mailtoUrl,
+        title: 'Enquiry Sent Successfully!',
+        message: 'Your message has been delivered to MS ENTERPRISES store management via Brevo Emailing Service. A confirmation copy has been sent to your email.',
       });
       setForm(EMPTY);
     } catch (err) {
@@ -62,8 +57,6 @@ Address: 73, HKP Road, Sulthangunta, Shivaji Nagar, Bengaluru, Karnataka 560051`
         tone: 'error',
         title: 'Could not send enquiry',
         message: errorMessage(err),
-        directGmailUrl,
-        mailtoUrl,
       });
     } finally {
       setSubmitting(false);
@@ -130,29 +123,8 @@ Address: 73, HKP Road, Sulthangunta, Shivaji Nagar, Bengaluru, Karnataka 560051`
             </a>
           </div>
           {result.message && (
-            <div className="mt-4 space-y-3">
+            <div className="mt-4">
               <Alert tone={result.tone} title={result.title}>{result.message}</Alert>
-              {result.directGmailUrl && (
-                <div className="rounded-xl border border-brand/30 bg-brand-soft/20 p-3 sm:p-4">
-                  <p className="text-xs font-semibold text-navy">Direct Email Actions to {BUSINESS.email}:</p>
-                  <div className="mt-2.5 flex flex-wrap gap-2">
-                    <a
-                      href={result.directGmailUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-primary btn-sm flex items-center gap-1.5"
-                    >
-                      <Mail className="h-3.5 w-3.5" /> Open in Gmail (Compose Direct)
-                    </a>
-                    <a
-                      href={result.mailtoUrl}
-                      className="btn btn-outline btn-sm flex items-center gap-1.5"
-                    >
-                      Open in Mail App
-                    </a>
-                  </div>
-                </div>
-              )}
             </div>
           )}
           <div className="mt-5 grid gap-4 sm:grid-cols-2">

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { sendBrevoEmail, retryBrevoEmail, isBrevoConfigured } from './brevo';
 import {
   MOCK_BRANDS,
   MOCK_CATEGORIES,
@@ -273,6 +274,15 @@ export const contactApi = {
       () => http.post('/contact', { kind: 'enquiry', ...data }),
       () => {
         const saved = saveMockEnquiry(data);
+        // Trigger background Brevo notification
+        if (data.email) {
+          sendBrevoEmail({
+            to: data.email,
+            subject: `Enquiry Received (${saved.id}) — MS ENTERPRISES`,
+            body: `Dear ${data.name || 'Customer'},\n\nThank you for reaching out to MS ENTERPRISES. We have received your message regarding "${data.subject}":\n\n"${data.message}"\n\nOur service desk at Shivaji Nagar is reviewing your request and will get back to you shortly.\n\nWarm regards,\nMS ENTERPRISES`,
+            templateKey: 'enquiry_customer',
+          }).catch(() => {});
+        }
         return {
           success: true,
           enquiry: saved,
@@ -294,6 +304,15 @@ export const bookingApi = {
       () => http.post('/bookings', data),
       () => {
         const booking = saveMockBooking(data);
+        // Trigger background Brevo notification
+        if (data.email) {
+          sendBrevoEmail({
+            to: data.email,
+            subject: `Repair Booking Confirmed (${booking.booking_code}) — MS ENTERPRISES`,
+            body: `Dear ${data.customer_name},\n\nYour repair slot has been successfully scheduled with MS ENTERPRISES!\n\nBooking ID: ${booking.booking_code}\nDevice: ${data.brand_name || ''} ${data.model_name || ''}\nService: ${data.service_name || 'Mobile Repair'}\nAppointment: ${data.appointment_date} (${data.preferred_time})\nIssue Description: ${data.issue || 'Inspection'}\n\nTrack your live repair progress at: https://msenterprises.in/track-repair?code=${booking.booking_code}\n\nStore Address: 73, HKP Road, Sulthangunta, Shivaji Nagar, Bengaluru 560051\nPhone: 8088298447\n\nBest regards,\nMS ENTERPRISES Service Team`,
+            templateKey: 'booking_customer',
+          }).catch(() => {});
+        }
         return { booking, emails: { customer: 'sent' } };
       }
     ),
@@ -551,8 +570,18 @@ export const opsApi = {
           { id: 'tech_2', full_name: 'Imran Khan', email: 'imran@msenterprises.com' },
         ];
         if (r === 'staff') return getMockStaff();
-        if (r === 'emails') return { logs: getMockEmailLogs() };
-        if (r === 'settings') return getMockSettings();
+        if (r === 'emails') return { brevo_configured: isBrevoConfigured(), smtp_configured: isBrevoConfigured(), logs: getMockEmailLogs() };
+        if (r === 'settings') {
+          const s = getMockSettings();
+          return {
+            ...s,
+            environment: {
+              ...s?.environment,
+              brevo_configured: isBrevoConfigured(),
+              smtp_configured: isBrevoConfigured(),
+            },
+          };
+        }
         if (r === 'movements') return getMockMovements();
         return [];
       }
@@ -560,7 +589,7 @@ export const opsApi = {
   post: (r, data, action) =>
     withFallback(
       () => null,
-      () => {
+      async () => {
         if (r === 'inventory') {
           const mov = recordStockMovement(data);
           const products = getMockProducts();
@@ -579,8 +608,15 @@ export const opsApi = {
           return { success: true, staff: created };
         }
         if (r === 'emails') {
-          const log = logMockEmail({ to: data.to, subject: 'Test Email Notification', template: 'test' });
-          return { status: 'sent', log };
+          if (action === 'retry') {
+            return await retryBrevoEmail(data.id);
+          }
+          return await sendBrevoEmail({
+            to: data.to,
+            subject: data.subject || 'MS ENTERPRISES Notification',
+            body: data.body || data.message || 'This is an email sent via Brevo Emailing Service from MS ENTERPRISES.',
+            templateKey: data.templateKey || 'manual_brevo',
+          });
         }
         return { success: true, data };
       }

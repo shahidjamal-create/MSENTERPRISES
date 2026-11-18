@@ -36,9 +36,6 @@ Here are the details for Repair Booking #${booking.booking_code}:
 Store Contact: mohammedafiz447@gmail.com
 Store Address: 73, HKP Road, Sulthangunta, Shivaji Nagar, Bengaluru, Karnataka 560051`;
 
-  const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=mohammedafiz447@gmail.com&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-  const mailtoUrl = `mailto:mohammedafiz447@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-
   return (
     <div className="mx-auto max-w-xl rounded-2xl border border-line bg-white p-6 text-center sm:p-8">
       <CheckCircle2 className="mx-auto h-12 w-12 text-success" />
@@ -58,29 +55,13 @@ Store Address: 73, HKP Road, Sulthangunta, Shivaji Nagar, Bengaluru, Karnataka 5
         <div><dt className="text-muted">Status</dt><dd className="font-medium">{booking.status}</dd></div>
       </dl>
 
-      <div className="mt-5 rounded-xl border border-brand/20 bg-brand-soft/30 p-3.5 text-left text-xs">
-        <p className="font-bold text-navy flex items-center gap-1.5">
-          <Mail className="h-4 w-4 text-brand" /> Direct Connection to Store Gmail
+      <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3.5 text-left text-xs">
+        <p className="font-bold text-emerald-800 flex items-center gap-1.5">
+          <Mail className="h-4 w-4 text-emerald-600" /> Confirmation Email Sent via Brevo
         </p>
-        <p className="mt-1 text-muted">
-          Your booking has been forwarded directly to <strong className="text-ink">mohammedafiz447@gmail.com</strong>.
+        <p className="mt-1 text-slate-600">
+          An instant booking confirmation with your appointment schedule has been delivered to <strong className="text-slate-800">{booking.email}</strong>.
         </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <a
-            href={gmailComposeUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-primary btn-sm flex items-center gap-1"
-          >
-            <Mail className="h-3.5 w-3.5" /> Send / View in Gmail
-          </a>
-          <a
-            href={mailtoUrl}
-            className="btn btn-outline btn-sm flex items-center gap-1"
-          >
-            Open Mail App
-          </a>
-        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap justify-center gap-3">

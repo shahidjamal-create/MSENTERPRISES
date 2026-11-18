@@ -3,7 +3,7 @@ import supabase from './db-client.js';
 import { withApi, HttpError, readBody, check, notAllowed } from './_lib/http.js';
 import { requirePermission, can, STAFF_ROLES } from './_lib/auth.js';
 import { changeStock, logMovement } from './_lib/inventory.js';
-import { sendTemplate, deliver, sendRaw, smtpConfigured, getSetting } from './_lib/email.js';
+import { sendTemplate, deliver, sendRaw, smtpConfigured, brevoConfigured, getSetting } from './_lib/email.js';
 import * as v from './_lib/validate.js';
 
 const money = (n) => `Rs. ${Number(n).toFixed(2)}`;
@@ -241,7 +241,11 @@ async function handleEmails(req, res) {
   if (req.method === 'GET') {
     let query = supabase.from('email_logs').select('*').order('created_at', { ascending: false }).limit(300);
     if (req.query.status) query = query.eq('status', req.query.status);
-    return res.status(200).json({ smtp_configured: smtpConfigured(), logs: check(await query) });
+    return res.status(200).json({
+      brevo_configured: brevoConfigured(),
+      smtp_configured: brevoConfigured(),
+      logs: check(await query),
+    });
   }
   if (req.method !== 'POST') return notAllowed();
 
@@ -251,9 +255,11 @@ async function handleEmails(req, res) {
     if (!['failed', 'not_configured'].includes(log.status)) throw new HttpError(409, 'Only failed or unsent emails can be retried.');
     return res.status(200).json(await deliver(log));
   }
-  if (req.query.action === 'test') {
+  if (req.query.action === 'test' || req.query.action === 'send') {
     const to = v.email(body.to, 'Recipient email');
-    const log = await sendRaw(to, 'MS ENTERPRISES test email', 'This is a test email from the MS ENTERPRISES admin panel.\nIf you received it, outgoing email is working.');
+    const subject = body.subject ? v.text(body.subject, 'Subject', { max: 200 }) : 'MS ENTERPRISES Notification';
+    const bodyText = body.body || body.message || 'This is an email sent via Brevo Emailing Service from MS ENTERPRISES.';
+    const log = await sendRaw(to, subject, bodyText, 'brevo_one_click');
     return res.status(200).json(log);
   }
   throw new HttpError(404, 'Unknown action');
@@ -303,7 +309,11 @@ async function handleSettings(req, res) {
       email,
       store,
       booking,
-      environment: { smtp_configured: smtpConfigured(), payment_gateway_configured: Boolean(process.env.RAZORPAY_KEY_ID) },
+      environment: {
+        brevo_configured: brevoConfigured(),
+        smtp_configured: brevoConfigured(),
+        payment_gateway_configured: Boolean(process.env.RAZORPAY_KEY_ID),
+      },
     });
   }
   if (req.method !== 'PUT') return notAllowed();

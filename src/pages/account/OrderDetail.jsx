@@ -45,7 +45,7 @@ export default function OrderDetail() {
       </Link>
       {placed && (
         <Alert tone="success" title="Order placed successfully">
-          Your order number is <strong>{order.order_number}</strong>. Order details and invoice copy have been sent directly to store owner email: <strong>mohammedafiz447@gmail.com</strong>.
+          Your order number is <strong>{order.order_number}</strong>. An order confirmation invoice copy has been sent to your email (<strong>{order.email}</strong>) via Brevo Emailing Service.
         </Alert>
       )}
 

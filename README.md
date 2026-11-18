@@ -37,7 +37,7 @@ with Postgres, so the same architecture is implemented with:
 | MongoDB collections | Supabase Postgres tables (same names; foreign keys for relationships) |
 | JWT auth + password hashing | Supabase Auth (bcrypt hashing, JWT access + refresh tokens), verified server-side |
 | Cloudinary | Supabase Storage bucket `product-images` |
-| Python SMTP email | Nodemailer over SMTP (Gmail app password supported) |
+| Email notifications | Brevo Transactional Email Service (v3 API & SMTP relay) |
 
 ## Project structure
 
@@ -83,15 +83,22 @@ src/
 3. Local development with API routes: `npx vercel dev` (or deploy to Vercel). `npm run dev` serves only the frontend.
 4. `npm run build` to produce `dist/`.
 
-### Enabling real email delivery
-Set these server environment variables (Vercel → Project → Settings → Environment Variables), then redeploy:
+### Enabling real email delivery (Brevo Emailing Service)
+Set your Brevo API key in the Admin Panel (**Admin → Email Management → Brevo Settings**) or configure environment variables:
 
 ```
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_USER=Mohammedafiz447@gmail.com
-SMTP_PASS=<Gmail App Password — Google Account → Security → App passwords>
-SMTP_FROM=Mohammedafiz447@gmail.com
+BREVO_API_KEY=<your-brevo-v3-api-key>
+BREVO_SENDER_NAME=MS ENTERPRISES
+BREVO_SENDER_EMAIL=mohammedafiz447@gmail.com
+```
+
+Or configure Brevo SMTP Relay:
+```
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=mohammedafiz447@gmail.com
+SMTP_PASS=<your-brevo-smtp-key>
+SMTP_FROM=mohammedafiz447@gmail.com
 ```
 
 Then open **Admin → Email Management**, send a test email, and press **Retry** on any `not_configured` entries.

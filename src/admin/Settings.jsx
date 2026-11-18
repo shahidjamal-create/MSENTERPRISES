@@ -94,8 +94,8 @@ export default function Settings() {
           <BookingSettings initial={data.booking} />
           <section className="card space-y-3 p-5 xl:col-span-2">
             <h2 className="font-semibold">Integrations (server environment)</h2>
-            <Alert tone={data.environment.smtp_configured ? 'success' : 'warning'}>
-              Email (SMTP): {data.environment.smtp_configured ? 'configured' : 'not configured — emails are logged but not sent'}.
+            <Alert tone={data.environment.brevo_configured || data.environment.smtp_configured ? 'success' : 'warning'}>
+              Email Service (Brevo): {data.environment.brevo_configured || data.environment.smtp_configured ? 'active (Brevo API)' : 'not configured — add BREVO_API_KEY in Email Management'}.
             </Alert>
             <Alert tone={data.environment.payment_gateway_configured ? 'success' : 'warning'}>
               Online payments (Razorpay/UPI): {data.environment.payment_gateway_configured ? 'keys present' : 'not configured — checkout offers Cash on Delivery only'}.
